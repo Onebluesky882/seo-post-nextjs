@@ -1,34 +1,48 @@
-type PostBlogs = {
-  params: {
-    postId: string;
-  };
-};
-export type Reactions = {
-  likes: number;
-  dislikes: number;
+// ✅ Move this file to: src/app/post/[postId]/page.tsx
+import { notFound } from "next/navigation";
+import { Metadata } from "next";
+
+// Define the TypeScript type for a blog post
+type BlogPost = {
+  id: number;
+  title: string;
+  body: string;
 };
 
-export default async function getPost({ params }: PostBlogs) {
-  const response = await fetch(`https://dummyjson.com/post/${params.postId}`);
+export async function getGenerateMetadata({
+  params,
+}: {
+  params: { postId: string };
+}): Promise<Metadata> {
+  const response: any = await fetch(
+    `https://dummyjson.com/posts/${params?.postId}`
+  );
+
+  const { title, body } = response.json();
+
+  return {
+    title: title,
+    description: body,
+  };
+}
+
+export default async function BlogPostPage({
+  params,
+}: {
+  params: { postId: string };
+}) {
+  const response = await fetch(`https://dummyjson.com/posts/${params?.postId}`);
+
   if (!response.ok) {
-    return <div>not found</div>;
+    notFound(); // Show 404 page if the post is not found
   }
 
-  const {
-    id,
-    title,
-    body,
-    reactions,
-  }: { id: number; title: string; body: string; reactions: Reactions } =
-    await response.json();
+  const post: BlogPost = await response.json();
 
   return (
     <div>
-      <h1>
-        post {id} : {title}
-      </h1>
-
-      <p> {reactions.likes}</p>
+      <h1>{post.title}</h1>
+      <p>{post.body}</p>
     </div>
   );
 }
